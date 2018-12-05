@@ -12,16 +12,18 @@ def get_data_ids():
     training_ids = []
     with open("train.csv") as file:
         reader = csv.reader(file)
+        next(reader, None)
+
         for row in reader:
             training_ids.append(row[0])
-    training_ids.pop(0)
     
     testing_ids = []
     with open("sample_submission.csv") as file:
         reader = csv.reader(file)
+        next(reader, None)
+
         for row in reader:
             testing_ids.append(row[0])
-    testing_ids.pop(0)
     
     return training_ids, testing_ids
 
@@ -30,10 +32,11 @@ def get_labels():
     
     with open("train.csv") as file:
         reader = csv.reader(file)
-        for row in reader:
-            d[row[0]] = row[1].split(' ')
+        next(reader, None)
 
-    d.pop('Id')
+        for row in reader:
+            d[row[0]] = list(map(int, row[1].split(' ')))
+
     return d
 
 def split_ids(ids, percent):

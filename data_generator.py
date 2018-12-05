@@ -56,10 +56,12 @@ class DataGenerator(keras.utils.Sequence):
         
         # Initialization
         X = np.empty((self.batch_size, self.n_channels, *self.dim))
-        y = np.empty((self.batch_size), dtype=int)
+        y = np.empty((self.batch_size, self.n_classes))
 
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
+            ID = '0faa5e82-bbb0-11e8-b2ba-ac1f6b6435d0'
+
             # Store sample
             X[i] = self.load(ID)
 
