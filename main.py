@@ -35,7 +35,7 @@ validation_generator = DataGenerator(validation_ids, labels, **params)
 net = InceptionResNetV2(include_top=False,
                           weights='imagenet',
                           input_tensor=None,
-                          input_shape=(3, 512, 512))
+                          input_shape=(512, 512, 3))
 x = net.output
 x = Flatten()(x)
 x = Dropout(0.5)(x)
@@ -52,8 +52,7 @@ for layer in model.layers[-5:]:
 adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, 
                        epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
-
-print(model.summary())
+#print(model.summary())
 
 # Train
 model.fit_generator(generator=training_generator,

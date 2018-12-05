@@ -55,7 +55,7 @@ class DataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         
         # Initialization
-        X = np.empty((self.batch_size, self.n_channels, *self.dim))
+        X = np.empty((self.batch_size, *self.dim, self.n_channels))
         y = np.empty((self.batch_size, self.n_classes))
 
         # Generate data
@@ -77,6 +77,7 @@ class DataGenerator(keras.utils.Sequence):
         Y = np.array(Image.open('data/training_data/' + ID + '_yellow.png'))
         
         image = np.array([R/2+Y/2, G, B/2+Y/2])
+        image = np.moveaxis(image, 0, -1) # channels last
         return image
     
     def get_multiclass_labels(self, ID):
