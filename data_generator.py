@@ -62,8 +62,6 @@ class DataGenerator(keras.utils.Sequence):
 
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
-            ID = '0faa5e82-bbb0-11e8-b2ba-ac1f6b6435d0'
-
             # Store sample
             X[i] = self.load(ID)
 
@@ -83,6 +81,10 @@ class DataGenerator(keras.utils.Sequence):
         return image
     
     def get_multiclass_labels(self, ID):
+        if self.labels is None:
+            # in case of predicting
+            return np.array([0]*self.n_classes)
+        
         multi_label = self.labels[ID]
         multi_lable_encoded = [1 if i in multi_label else 0 for i in range(self.n_classes)]
         

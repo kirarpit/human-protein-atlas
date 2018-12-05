@@ -34,9 +34,16 @@ print(model.summary())
 model.fit_generator(generator=training_generator,
                     validation_data=validation_generator,
                     use_multiprocessing=True,
-                    workers=6)
+                    workers=6,
+                    epochs=1)
 
 # Predict
-#preds = model.predict(X_test)
-#preds[preds>=0.5] = 1
-#preds[preds<0.5] = 0
+params['shuffle'] = False
+testing_generator = DataGenerator(testing_ids, labels=None, **params)
+
+predictions = model.predict_generator(testing_generator,
+                        use_multiprocessing=False,
+                        workers=1,
+                        verbose=1)
+
+print(predictions)

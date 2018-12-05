@@ -11,6 +11,12 @@ from keras import optimizers
 from keras.utils import multi_gpu_model
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 
+def custom_acc(y_true, y_pred):
+    y_pred[y_pred>=0.5] = 1
+    y_pred[y_pred<0.5] = 0
+    
+    return set(y_pred) == set(y_true)
+
 def get_model(params):
     net = InceptionResNetV2(include_top=False,
                           weights='imagenet',
@@ -32,6 +38,11 @@ def get_model(params):
     
     adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, 
                            epsilon=None, decay=0.0, amsgrad=False)
-    parallel_model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+    parallel_model.compile(loss='binary_crossentropy', optimizer=adam, 
+                           metrics=["accuracy",
+                                    "binary_accuracy",
+                                    "categorical_accuracy",
+                                    "sparse_categorical_accuracy",
+                                    custom_acc])
     
     return parallel_model
