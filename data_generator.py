@@ -10,13 +10,11 @@ from PIL import Image
 import numpy as np
 import keras
 
-training_path = 'data/training_data/'
-
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     
     def __init__(self, list_IDs, labels, batch_size=32, dim=(32,32,32), n_channels=1,
-                 n_classes=10, shuffle=True):
+                 n_classes=10, shuffle=True, dir_path=None):
         'Initialization'
         
         self.list_IDs = list_IDs
@@ -26,6 +24,7 @@ class DataGenerator(keras.utils.Sequence):
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.shuffle = shuffle
+        self.dir_path = dir_path
 
         self.on_epoch_end()
 
@@ -71,10 +70,10 @@ class DataGenerator(keras.utils.Sequence):
         return X, y
     
     def load(self, ID):
-        R = np.array(Image.open(training_path + ID + '_red.png'))
-        G = np.array(Image.open(training_path + ID + '_green.png'))
-        B = np.array(Image.open(training_path + ID + '_blue.png'))
-        Y = np.array(Image.open(training_path + ID + '_yellow.png'))
+        R = np.array(Image.open(self.dir_path + ID + '_red.png'))
+        G = np.array(Image.open(self.dir_path + ID + '_green.png'))
+        B = np.array(Image.open(self.dir_path + ID + '_blue.png'))
+        Y = np.array(Image.open(self.dir_path + ID + '_yellow.png'))
         
         image = np.array([R/2+Y/2, G, B/2+Y/2])
         image = np.moveaxis(image, 0, -1) # channels last

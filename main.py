@@ -15,7 +15,8 @@ params = {'dim': (512,512),
           'batch_size': 64,
           'n_classes': 28,
           'n_channels': 3,
-          'shuffle': True}
+          'shuffle': True,
+          'dir_path': 'data/training_data/'}
 
 # Datasets
 training_ids, testing_ids = get_data_ids()
@@ -39,6 +40,7 @@ model.fit_generator(generator=training_generator,
 
 # Predict
 params['shuffle'] = False
+params['dir_path'] = 'data/testing_data/'
 testing_generator = DataGenerator(testing_ids, labels=None, **params)
 
 predictions = model.predict_generator(testing_generator,
