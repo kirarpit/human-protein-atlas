@@ -10,6 +10,8 @@ from PIL import Image
 import numpy as np
 import keras
 
+training_path = 'data/training_data/'
+
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     
@@ -71,10 +73,10 @@ class DataGenerator(keras.utils.Sequence):
         return X, y
     
     def load(self, ID):
-        R = np.array(Image.open('data/training_data/' + ID + '_red.png'))
-        G = np.array(Image.open('data/training_data/' + ID + '_green.png'))
-        B = np.array(Image.open('data/training_data/' + ID + '_blue.png'))
-        Y = np.array(Image.open('data/training_data/' + ID + '_yellow.png'))
+        R = np.array(Image.open(training_path + ID + '_red.png'))
+        G = np.array(Image.open(training_path + ID + '_green.png'))
+        B = np.array(Image.open(training_path + ID + '_blue.png'))
+        Y = np.array(Image.open(training_path + ID + '_yellow.png'))
         
         image = np.array([R/2+Y/2, G, B/2+Y/2])
         image = np.moveaxis(image, 0, -1) # channels last
