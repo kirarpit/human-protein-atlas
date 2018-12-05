@@ -5,7 +5,7 @@ Created on Wed Dec  5 11:42:42 2018
 
 @author: Arpit
 """
-from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Dense, Dropout, Flatten, Conv2D, LeakyReLU
 from keras.models import Model, load_model
 from keras import optimizers
 from keras.utils import multi_gpu_model
@@ -56,16 +56,35 @@ def get_model(params):
                           input_tensor=None,
                           input_shape=(512, 512, 3))
     x = net.output
+    x = Conv2D(filters = 1, kernel_size = (1,1),
+               padding = 'same', use_bias=False, activation='linear')(x)
+    x = LeakyReLU()(x)
+
     x = Flatten()(x)
     x = Dropout(0.5)(x)
     
+    x = Dense(196, use_bias=False, activation='linear')(x)
+    x = LeakyReLU()(x)
+    x = Dropout(0.5)(x)
+
+    x = Dense(196, use_bias=False, activation='linear')(x)
+    x = LeakyReLU()(x)
+    x = Dropout(0.5)(x)
+
     output_layer = Dense(params['n_classes'], activation='sigmoid', name='sigmoid')(x)
     model = Model(inputs=net.input, outputs=output_layer)
     
-    for layer in model.layers[:-2]:
-        layer.trainable = False
-    for layer in model.layers[-2:]:
-        layer.trainable = True
+    """
+    Freeze everything till this layer
+    conv_7b_ac (Activation)         (None, 14, 14, 1536) 0           conv_7b_bn[0][0]
+    """
+    trainable = False
+    for layer in model.layers:
+        layer.trainable = trainable
+        if layer.name == 'conv_7b_ac':
+            trainable = True
+            
+    print(model.summary())
         
     parallel_model = multi_gpu_model(model, gpus=2)
     
