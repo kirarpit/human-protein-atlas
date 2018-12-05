@@ -6,18 +6,51 @@ Created on Wed Dec  5 11:42:42 2018
 @author: Arpit
 """
 from keras.layers import Dense, Dropout, Flatten
-from keras.models import Model
+from keras.models import Model, load_model
 from keras import optimizers
 from keras.utils import multi_gpu_model
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
+from keras import backend as K
 
-def custom_acc(y_true, y_pred):
-    y_pred[y_pred>=0.5] = 1
-    y_pred[y_pred<0.5] = 0
+import os
+
+def f1(y_true, y_pred):
+    def recall(y_true, y_pred):
+        """Recall metric.
+
+        Only computes a batch-wise average of recall.
+
+        Computes the recall, a metric for multi-label classification of
+        how many relevant items are selected.
+        """
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + K.epsilon())
+        return recall
+
+    def precision(y_true, y_pred):
+        """Precision metric.
+
+        Only computes a batch-wise average of precision.
+
+        Computes the precision, a metric for multi-label classification of
+        how many selected items are relevant.
+        """
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + K.epsilon())
+        return precision
     
-    return set(y_pred) == set(y_true)
+    precision = precision(y_true, y_pred)
+    recall = recall(y_true, y_pred)
+    
+    return 2*((precision*recall)/(precision+recall+K.epsilon()))
 
 def get_model(params):
+    if os.path.exists('model'):
+        print("Loading existing model")
+        return load_model('model')
+
     net = InceptionResNetV2(include_top=False,
                           weights='imagenet',
                           input_tensor=None,
@@ -39,10 +72,6 @@ def get_model(params):
     adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, 
                            epsilon=None, decay=0.0, amsgrad=False)
     parallel_model.compile(loss='binary_crossentropy', optimizer=adam, 
-                           metrics=["accuracy",
-                                    "binary_accuracy",
-                                    "categorical_accuracy",
-                                    "sparse_categorical_accuracy",
-                                    custom_acc])
+                           metrics=["categorical_accuracy", f1])
     
     return parallel_model

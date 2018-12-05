@@ -36,16 +36,21 @@ model.fit_generator(generator=training_generator,
                     validation_data=validation_generator,
                     use_multiprocessing=True,
                     workers=6,
-                    epochs=1)
+                    epochs=1,
+                    verbose=1)
+
+model.save('model')
 
 # Predict
 params['shuffle'] = False
+params['batch_size'] = 1
 params['dir_path'] = 'data/testing_data/'
 testing_generator = DataGenerator(testing_ids, labels=None, **params)
 
-predictions = model.predict_generator(testing_generator,
-                        use_multiprocessing=False,
-                        workers=1,
-                        verbose=1)
+preds = model.predict_generator(testing_generator,
+                                steps=len(testing_ids),
+                                use_multiprocessing=False,
+                                workers=1,
+                                verbose=1)
 
-print(predictions)
+print(preds, preds.shape, len(testing_ids))
