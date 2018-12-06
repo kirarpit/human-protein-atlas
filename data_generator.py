@@ -93,10 +93,10 @@ class DataGenerator(keras.utils.Sequence):
         B = np.array(Image.open(self.dir_path + ID + '_blue.png'))
         Y = np.array(Image.open(self.dir_path + ID + '_yellow.png'))
         
-        image = np.stack([R/2+Y/2, G, B/2+Y/2], axis=-1)
+        image = np.stack([R/2+Y/2, G/2+Y/2, B], axis=-1)
         
         if self.dim != (512, 512):
-            image = cv2.resize(image, self.dim, cv2.INTER_AREA)        
+            image = cv2.resize(image, self.dim)        
         
         image = np.divide(image, 255)
         

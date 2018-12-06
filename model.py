@@ -36,27 +36,6 @@ def focal_loss(gamma=2., alpha=.25):
         return -K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1))-K.sum((1-alpha) * K.pow( pt_0, gamma) * K.log(1. - pt_0))
     
     return focal_loss_fixed
-
-def get_inception_model(params):
-    net = InceptionResNetV2(include_top=False,
-                          weights='imagenet',
-                          input_tensor=None,
-                          input_shape=(*params['dim'], 3))
-
-    input_tensor = Input(shape=(*params['dim'], 3))
-    bn = BatchNormalization()(input_tensor)
-    x = net(bn)
-    x = Conv2D(128, kernel_size=(1,1), activation='relu')(x)
-    x = Flatten()(x)
-    x = Dropout(0.5)(x)
-
-    x = Dense(512, activation='linear')(x)
-    x = Dropout(0.5)(x)
-
-    output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
-    model = Model(inputs=input_tensor, outputs=output_layer)
-
-    return model
     
 def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
     x = Conv2D(filters = filters, kernel_size = kernel_size,
@@ -102,6 +81,27 @@ def get_simple_model(params):
     
     return model
 
+def get_inception_model(params):
+    input_tensor = Input(shape=(*params['dim'], 3))
+    x = BatchNormalization()(input_tensor)
+
+    net = InceptionResNetV2(include_top=False,
+                          weights='imagenet',
+                          input_tensor=None,
+                          input_shape=(*params['dim'], 3))
+
+    x = net(x)
+    x = Conv2D(128, kernel_size=(1,1), activation='relu')(x)
+    x = Flatten()(x)
+    x = Dropout(0.5)(x)
+    x = Dense(512, activation='relu')(x)
+    x = Dropout(0.5)(x)
+
+    output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
+    model = Model(inputs=input_tensor, outputs=output_layer)
+
+    return model
+
 def get_model(params, inception=False):
     if os.path.exists('model.h5'):
         print("Loading existing model")
@@ -109,15 +109,14 @@ def get_model(params, inception=False):
 
     if inception:
         model = get_inception_model(params)
-        model.layers[2].trainable = False
+        model.layers[2].trainable = True
     else:
         model = get_simple_model(params)
         
     print(model.summary())
         
     parallel_model = multi_gpu_model(model)
-    
-    parallel_model.compile(optimizer=optimizers.Adam(lr=1e-3),
+    parallel_model.compile(optimizer=optimizers.Adam(lr=1e-4),
                            loss=['binary_crossentropy'],
                            metrics=["categorical_accuracy", f1])
     
