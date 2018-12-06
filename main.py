@@ -9,6 +9,7 @@ Created on Tue Dec  4 20:47:29 2018
 from data_generator import DataGenerator
 from model import get_model
 from utils import get_data_ids, get_labels, split_ids, save_preds
+from keras.callbacks import ModelCheckpoint
 
 # Parameters
 params = {'dim': (512,512),
@@ -32,11 +33,13 @@ model = get_model(params)
 print(model.summary())
 
 # Train
+checkpointer = ModelCheckpoint(filepath='model.h5', verbose=1,
+                               save_best_only=True,
+                               save_weights_only=False)
 model.fit_generator(generator=training_generator,
                     validation_data=validation_generator,
+                    callbacks=[checkpointer],
                     epochs=1)
-
-model.save('model')
 
 # Predict
 params['shuffle'] = False
@@ -47,5 +50,5 @@ testing_generator = DataGenerator(testing_ids, labels=None, **params)
 preds = model.predict_generator(testing_generator,
                                 steps=len(testing_ids))
 
-save_preds(preds)
+save_preds(preds, testing_ids)
 print(preds, preds.shape, len(testing_ids))

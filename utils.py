@@ -52,11 +52,15 @@ def split_ids(ids, percent):
     
     return training_ids, testing_ids
 
-def save_preds(preds):
-    pass
-#    f = open('predictions.csv', 'w')
-#    f.write("id,class\n")
-#    
-#    for i in range(len(keys)):
-#        f.write(keys[i] + "," + preds[i] + "\n")
-#    f.close()
+def save_preds(preds, ids):
+    preds[preds>=0.5] = 1
+    preds[preds<0.5] = 0
+    
+    f = open('predictions.csv', 'w')
+    f.write("Id,Predicted\n")
+    
+    for i in range(len(preds)):
+        l = list(np.where(preds[i] == 1.0)[0])
+        labels = ','.join(str(e) for e in l)
+        f.write(ids[i] + "," + labels + "\n")
+    f.close()

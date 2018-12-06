@@ -129,9 +129,9 @@ def get_simple_model(params):
     return model
 
 def get_model(params):
-    if os.path.exists('model'):
+    if os.path.exists('model.h5'):
         print("Loading existing model")
-        return load_model('model',  custom_objects={'f1': f1})
+        return load_model('model.h5',  custom_objects={'f1': f1})
 
     model = get_simple_model(params)
     print(model.summary())
