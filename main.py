@@ -12,11 +12,12 @@ from utils import get_data_ids, get_labels, split_ids
 
 # Parameters
 params = {'dim': (512,512),
-          'batch_size': 64,
+          'batch_size': 32,
           'n_classes': 28,
           'n_channels': 3,
           'shuffle': True,
-          'dir_path': 'data/training_data/'}
+          'dir_path': 'data/training_data/',
+          'epochs':1}
 
 # Datasets
 training_ids, testing_ids = get_data_ids()
@@ -36,7 +37,7 @@ model.fit_generator(generator=training_generator,
                     validation_data=validation_generator,
                     use_multiprocessing=True,
                     workers=6,
-                    epochs=1,
+                    epochs=params['epochs'],
                     verbose=1)
 
 model.save('model')
