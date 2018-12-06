@@ -41,6 +41,7 @@ def get_labels():
 
 def split_ids(ids, percent):
     l = np.arange(len(ids))
+    np.random.seed(0)
     np.random.shuffle(l)
     
     training_idxs = l[:int(percent*len(ids))]
@@ -50,3 +51,12 @@ def split_ids(ids, percent):
     testing_ids = [ids[index] for index in testing_idxs]
     
     return training_ids, testing_ids
+
+def save_preds(preds):
+    pass
+#    f = open('predictions.csv', 'w')
+#    f.write("id,class\n")
+#    
+#    for i in range(len(keys)):
+#        f.write(keys[i] + "," + preds[i] + "\n")
+#    f.close()

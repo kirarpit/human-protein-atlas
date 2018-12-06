@@ -131,12 +131,12 @@ def get_simple_model(params):
 def get_model(params):
     if os.path.exists('model'):
         print("Loading existing model")
-        return load_model('model')
+        return load_model('model',  custom_objects={'f1': f1})
 
     model = get_simple_model(params)
     print(model.summary())
         
-    parallel_model = multi_gpu_model(model, gpus=2)
+    parallel_model = multi_gpu_model(model)
     
     adam = optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999, 
                            epsilon=None, decay=0.0, amsgrad=False)
