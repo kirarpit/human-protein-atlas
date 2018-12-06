@@ -105,8 +105,7 @@ def get_simple_model(params):
 def get_model(params, inception=False):
     if os.path.exists('model.h5'):
         print("Loading existing model")
-        return load_model('model.h5',  custom_objects={'f1': f1,
-                                                       'focal_loss': focal_loss})
+        return load_model('model.h5',  custom_objects={'f1': f1})
 
     if inception:
         model = get_inception_model(params)

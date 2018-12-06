@@ -73,11 +73,11 @@ def save_preds(preds, ids, threshold=0.5, indiv_thresh=False):
         f.write(ids[i] + "," + labels + "\n")
     f.close()
     
-def save_numpy(filename, data):
+def save_numpy(data, filename='numpy_preds'):
     with open(filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-def load_numpy(filename):
+def load_numpy(filename='numpy_preds'):
     with open(filename, 'rb') as handle:
         data = pickle.load(handle)
     
