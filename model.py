@@ -148,8 +148,7 @@ def get_model(params):
         
     parallel_model = multi_gpu_model(model)
     
-    adam = optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999, 
-                           epsilon=None, decay=0.0, amsgrad=False)
+    adam = optimizers.Adam(lr=1e-3, decay=1e-6)
     parallel_model.compile(optimizer=adam,
                            loss=[focal_loss(alpha=.25, gamma=2)],
                            metrics=["categorical_accuracy", f1])

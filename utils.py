@@ -9,6 +9,10 @@ import csv
 import numpy as np
 import pickle
 
+hand_thresholds = [0.565,0.39,0.55,0.345,0.33,0.39,0.33,0.45,0.38,0.39,
+               0.34,0.42,0.31,0.38,0.49,0.50,0.38,0.43,0.46,0.40,
+               0.39,0.505,0.37,0.47,0.41,0.545,0.32,0.1]
+
 def get_data_ids():
     training_ids = []
     with open("train.csv") as file:
@@ -53,15 +57,18 @@ def split_ids(ids, percent):
     
     return training_ids, testing_ids
 
-def save_preds(preds, ids, threshold=0.5):
-    preds[preds>=threshold] = 1
-    preds[preds<threshold] = 0
+def save_preds(preds, ids, threshold=0.5, indiv_thresh=False):
     
+    if not indiv_thresh:
+        thresholds = np.array([threshold]*28)
+    else:
+        thresholds = np.array(hand_thresholds)
+        
     f = open('predictions.csv', 'w')
     f.write("Id,Predicted\n")
     
     for i in range(len(preds)):
-        l = list(np.where(preds[i] == 1.0)[0])
+        l = list(np.nonzero(preds[i]>=thresholds)[0])
         labels = ' '.join(str(e) for e in l)
         f.write(ids[i] + "," + labels + "\n")
     f.close()
