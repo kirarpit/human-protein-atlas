@@ -18,36 +18,16 @@ import tensorflow as tf
 import os
 
 def f1(y_true, y_pred):
-    def recall(y_true, y_pred):
-        """Recall metric.
+    tp = K.sum(K.cast(y_true*y_pred, 'float'), axis=0)
+    fp = K.sum(K.cast((1-y_true)*y_pred, 'float'), axis=0)
+    fn = K.sum(K.cast(y_true*(1-y_pred), 'float'), axis=0)
 
-        Only computes a batch-wise average of recall.
+    p = tp / (tp + fp + K.epsilon())
+    r = tp / (tp + fn + K.epsilon())
 
-        Computes the recall, a metric for multi-label classification of
-        how many relevant items are selected.
-        """
-        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-        recall = true_positives / (possible_positives + K.epsilon())
-        return recall
-
-    def precision(y_true, y_pred):
-        """Precision metric.
-
-        Only computes a batch-wise average of precision.
-
-        Computes the precision, a metric for multi-label classification of
-        how many selected items are relevant.
-        """
-        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-        precision = true_positives / (predicted_positives + K.epsilon())
-        return precision
-    
-    precision = precision(y_true, y_pred)
-    recall = recall(y_true, y_pred)
-    
-    return 2*((precision*recall)/(precision+recall+K.epsilon()))
+    f1 = 2*p*r / (p+r+K.epsilon())
+    f1 = tf.where(tf.is_nan(f1), tf.zeros_like(f1), f1)
+    return K.mean(f1)
 
 def focal_loss(gamma=2., alpha=.25):
     def focal_loss_fixed(y_true, y_pred):
@@ -148,9 +128,8 @@ def get_model(params):
         
     parallel_model = multi_gpu_model(model)
     
-    adam = optimizers.Adam(lr=1e-3, decay=1e-6)
-    parallel_model.compile(optimizer=adam,
-                           loss=[focal_loss(alpha=.25, gamma=2)],
+    parallel_model.compile(optimizer=optimizers.Adam(lr=1e-3),
+                           loss=['binary_crossentropy'],
                            metrics=["categorical_accuracy", f1])
     
     return parallel_model
