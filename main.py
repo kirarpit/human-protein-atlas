@@ -16,8 +16,7 @@ params = {'dim': (512,512),
           'n_classes': 28,
           'n_channels': 3,
           'shuffle': True,
-          'dir_path': 'data/training_data/',
-          'epochs':1}
+          'dir_path': 'data/training_data/'}
 
 # Datasets
 training_ids, testing_ids = get_data_ids()
@@ -37,8 +36,7 @@ model.fit_generator(generator=training_generator,
                     validation_data=validation_generator,
                     use_multiprocessing=True,
                     workers=6,
-                    epochs=params['epochs'],
-                    verbose=1)
+                    epochs=1)
 
 model.save('model')
 
@@ -51,7 +49,6 @@ testing_generator = DataGenerator(testing_ids, labels=None, **params)
 preds = model.predict_generator(testing_generator,
                                 steps=len(testing_ids),
                                 use_multiprocessing=False,
-                                workers=1,
-                                verbose=1)
+                                workers=1)
 
 print(preds, preds.shape, len(testing_ids))

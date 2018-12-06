@@ -94,7 +94,7 @@ def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
         x = BatchNormalization(axis=-1)(x)
         
     if pool:
-        x = MaxPooling2D(pool_size=(2,2))(x)
+        x = MaxPooling2D(pool_size=(4,4))(x)
         
     if drop:
         x = Dropout(0.25)(x)
