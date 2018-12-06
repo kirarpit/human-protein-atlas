@@ -9,12 +9,13 @@ Created on Tue Dec  4 20:40:05 2018
 from PIL import Image
 import numpy as np
 import keras
+import cv2
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     
-    def __init__(self, list_IDs, labels, batch_size=32, dim=(32,32,32), n_channels=1,
-                 n_classes=10, shuffle=True, dir_path=None):
+    def __init__(self, list_IDs, labels, batch_size=32, dim, n_channels,
+                 n_classes, shuffle=True, dir_path=None):
         'Initialization'
         
         self.list_IDs = list_IDs
@@ -70,13 +71,17 @@ class DataGenerator(keras.utils.Sequence):
         return X, y
     
     def load(self, ID):
-        R = np.array(Image.open(self.dir_path + ID + '_red.png'))
-        G = np.array(Image.open(self.dir_path + ID + '_green.png'))
-        B = np.array(Image.open(self.dir_path + ID + '_blue.png'))
-        Y = np.array(Image.open(self.dir_path + ID + '_yellow.png'))
         
-        image = np.array([R/2+Y/2, G, B/2+Y/2])
-        image = np.moveaxis(image, 0, -1) # channels last
+        R = np.array(Image.open(self.dir_path + ID + '_red.png'))/255
+        G = np.array(Image.open(self.dir_path + ID + '_green.png'))/255
+        B = np.array(Image.open(self.dir_path + ID + '_blue.png'))/255
+        Y = np.array(Image.open(self.dir_path + ID + '_yellow.png'))/255
+        
+        image = np.stack([R/2+Y/2, G, B/2+Y/2], axis=-1)
+        
+        if self.dim != (512, 512):
+            image = cv2.resize(image, self.dim, cv2.INTER_AREA)        
+            
         return image
     
     def get_multiclass_labels(self, ID):

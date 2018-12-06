@@ -53,9 +53,9 @@ def split_ids(ids, percent):
     
     return training_ids, testing_ids
 
-def save_preds(preds, ids):
-    preds[preds>=0.5] = 1
-    preds[preds<0.5] = 0
+def save_preds(preds, ids, threshold=0.5):
+    preds[preds>=threshold] = 1
+    preds[preds<threshold] = 0
     
     f = open('predictions.csv', 'w')
     f.write("Id,Predicted\n")

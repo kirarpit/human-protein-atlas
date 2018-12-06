@@ -13,6 +13,7 @@ from keras import optimizers
 from keras.utils import multi_gpu_model
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 from keras import backend as K
+import tensorflow as tf
 
 import os
 
@@ -47,6 +48,14 @@ def f1(y_true, y_pred):
     recall = recall(y_true, y_pred)
     
     return 2*((precision*recall)/(precision+recall+K.epsilon()))
+
+def focal_loss(gamma=2., alpha=.25):
+    def focal_loss_fixed(y_true, y_pred):
+        pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+        pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+        return -K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1))-K.sum((1-alpha) * K.pow( pt_0, gamma) * K.log(1. - pt_0))
+    
+    return focal_loss_fixed
 
 def get_inception_model(params):
     net = InceptionResNetV2(include_top=False,
@@ -131,7 +140,8 @@ def get_simple_model(params):
 def get_model(params):
     if os.path.exists('model.h5'):
         print("Loading existing model")
-        return load_model('model.h5',  custom_objects={'f1': f1})
+        return load_model('model.h5',  custom_objects={'f1': f1,
+                                                       'focal_loss': focal_loss})
 
     model = get_simple_model(params)
     print(model.summary())
@@ -140,7 +150,8 @@ def get_model(params):
     
     adam = optimizers.Adam(lr=1e-3, beta_1=0.9, beta_2=0.999, 
                            epsilon=None, decay=0.0, amsgrad=False)
-    parallel_model.compile(loss='binary_crossentropy', optimizer=adam, 
+    parallel_model.compile(optimizer=adam,
+                           loss=[focal_loss(alpha=.25, gamma=2)],
                            metrics=["categorical_accuracy", f1])
     
     return parallel_model
