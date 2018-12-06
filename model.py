@@ -41,36 +41,21 @@ def get_inception_model(params):
     net = InceptionResNetV2(include_top=False,
                           weights='imagenet',
                           input_tensor=None,
-                          input_shape=(512, 512, 3))
-    x = net.output
-    x = Conv2D(filters = 1, kernel_size = (1,1),
-               padding = 'same', use_bias=False, activation='linear')(x)
-    x = LeakyReLU()(x)
+                          input_shape=(*params['dim'], 3))
 
+    input_tensor = Input(shape=(*params['dim'], 3))
+    bn = BatchNormalization()(input_tensor)
+    x = net(bn)
+    x = Conv2D(128, kernel_size=(1,1), activation='relu')(x)
     x = Flatten()(x)
     x = Dropout(0.5)(x)
-    
-    x = Dense(196, use_bias=False, activation='linear')(x)
-    x = LeakyReLU()(x)
+
+    x = Dense(512, activation='linear')(x)
     x = Dropout(0.5)(x)
 
-    x = Dense(196, use_bias=False, activation='linear')(x)
-    x = LeakyReLU()(x)
-    x = Dropout(0.5)(x)
+    output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
+    model = Model(inputs=input_tensor, outputs=output_layer)
 
-    output_layer = Dense(params['n_classes'], activation='sigmoid', name='sigmoid')(x)
-    model = Model(inputs=net.input, outputs=output_layer)
-    
-    """
-    Freeze everything till this layer
-    conv_7b_ac (Activation)         (None, 14, 14, 1536) 0           conv_7b_bn[0][0]
-    """
-    trainable = False
-    for layer in model.layers:
-        layer.trainable = trainable
-        if layer.name == 'conv_7b_ac':
-            trainable = True
-    
     return model
     
 def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
@@ -117,13 +102,18 @@ def get_simple_model(params):
     
     return model
 
-def get_model(params):
+def get_model(params, inception=False):
     if os.path.exists('model.h5'):
         print("Loading existing model")
         return load_model('model.h5',  custom_objects={'f1': f1,
                                                        'focal_loss': focal_loss})
 
-    model = get_simple_model(params)
+    if inception:
+        model = get_inception_model(params)
+        model.layers[2].trainable = False
+    else:
+        model = get_simple_model(params)
+        
     print(model.summary())
         
     parallel_model = multi_gpu_model(model)

@@ -15,8 +15,8 @@ from imgaug import augmenters as iaa
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     
-    def __init__(self, list_IDs, labels, batch_size=32, dim, n_channels,
-                 n_classes, shuffle=True, dir_path=None, augment=True):
+    def __init__(self, list_IDs, labels, dim, n_channels, n_classes,
+                 batch_size=32, shuffle=True, dir_path=None, augment=True):
         'Initialization'
         
         self.list_IDs = list_IDs
@@ -27,6 +27,7 @@ class DataGenerator(keras.utils.Sequence):
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.dir_path = dir_path
+        self.augment = augment
 
         self.on_epoch_end()
 
@@ -71,7 +72,7 @@ class DataGenerator(keras.utils.Sequence):
 
         return X, y
     
-    def augment_image(image):
+    def augment_image(self, image):
         augment_img = iaa.Sequential([
             iaa.OneOf([
                 iaa.Affine(rotate=0),
