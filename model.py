@@ -115,7 +115,7 @@ def get_model(params, inception=False):
         
     print(model.summary())
         
-    parallel_model = multi_gpu_model(model)
+    parallel_model = multi_gpu_model(model, gpus=2)
     parallel_model.compile(optimizer=optimizers.Adam(lr=1e-4),
                            loss=['binary_crossentropy'],
                            metrics=["categorical_accuracy", f1])
