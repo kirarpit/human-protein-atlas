@@ -8,7 +8,7 @@ Created on Tue Dec  4 20:47:29 2018
 
 from data_generator import DataGenerator
 from model import get_model
-from utils import get_data_ids, get_labels, split_ids, save_preds
+from utils import get_data_ids, get_labels, split_ids, save_preds, save_numpy
 from keras.callbacks import ModelCheckpoint
 
 # Parameters
@@ -48,7 +48,8 @@ params['dir_path'] = 'data/testing_data/'
 testing_generator = DataGenerator(testing_ids, labels=None, **params)
 
 preds = model.predict_generator(testing_generator,
-                                steps=len(testing_ids))
-
+                                steps=len(testing_ids),
+                                verbose=1)
+save_numpy(preds)
 save_preds(preds, testing_ids)
 print(preds, preds.shape, len(testing_ids))

@@ -7,6 +7,7 @@ Created on Tue Dec  4 00:21:55 2018
 """
 import csv
 import numpy as np
+import pickle
 
 def get_data_ids():
     training_ids = []
@@ -61,6 +62,16 @@ def save_preds(preds, ids):
     
     for i in range(len(preds)):
         l = list(np.where(preds[i] == 1.0)[0])
-        labels = ','.join(str(e) for e in l)
+        labels = ' '.join(str(e) for e in l)
         f.write(ids[i] + "," + labels + "\n")
     f.close()
+    
+def save_numpy(filename, data):
+    with open(filename, 'wb') as handle:
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+def load_numpy(filename):
+    with open(filename, 'rb') as handle:
+        data = pickle.load(handle)
+    
+    return data
