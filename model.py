@@ -29,6 +29,18 @@ def f1(y_true, y_pred):
     f1 = tf.where(tf.is_nan(f1), tf.zeros_like(f1), f1)
     return K.mean(f1)
 
+def f1_loss(y_true, y_pred):
+    tp = K.sum(K.cast(y_true*y_pred, 'float'), axis=0)
+    fp = K.sum(K.cast((1-y_true)*y_pred, 'float'), axis=0)
+    fn = K.sum(K.cast(y_true*(1-y_pred), 'float'), axis=0)
+
+    p = tp / (tp + fp + K.epsilon())
+    r = tp / (tp + fn + K.epsilon())
+
+    f1 = 2*p*r / (p+r+K.epsilon())
+    f1 = tf.where(tf.is_nan(f1), tf.zeros_like(f1), f1)
+    return 1 - K.mean(f1)
+
 def focal_loss(gamma=2., alpha=.25):
     def focal_loss_fixed(y_true, y_pred):
         pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
@@ -105,7 +117,7 @@ def get_inception_model(params):
 def get_model(params, inception=False):
     if os.path.exists('model.h5'):
         print("Loading existing model")
-        return load_model('model.h5',  custom_objects={'f1': f1})
+        return load_model('model.h5',  custom_objects={'f1': f1, 'f1_loss': f1_loss})
 
     if inception:
         model = get_inception_model(params)
@@ -117,7 +129,8 @@ def get_model(params, inception=False):
         
     parallel_model = multi_gpu_model(model, gpus=2)
     parallel_model.compile(optimizer=optimizers.Adam(lr=1e-4),
-                           loss=['binary_crossentropy'],
+                           loss=[f1_loss],
+#                           loss=['binary_crossentropy'],
                            metrics=["categorical_accuracy", f1])
     
     return parallel_model
