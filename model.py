@@ -49,24 +49,24 @@ def focal_loss(gamma=2., alpha=.25):
     
     return focal_loss_fixed
     
-def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
+def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True, pool_size=(4,4)):
     x = Conv2D(filters = filters, kernel_size = kernel_size,
                padding = 'same', activation='linear',
                kernel_initializer=initializers.glorot_uniform())(x)
     x = ELU()(x)
     
     if bn:
-        x = BatchNormalization(axis=-1)(x)
+        x = BatchNormalization()(x)
         
     if pool:
-        x = MaxPooling2D(pool_size=(4,4))(x)
+        x = MaxPooling2D(pool_size=pool_size)(x)
         
     if drop:
         x = Dropout(0.25)(x)
     
     return x
 
-def get_fc_layer(x, size, bn=True):
+def get_fc_layer(x, size, bn=False):
     x = Dense(size, activation='linear',
               kernel_initializer=initializers.glorot_uniform())(x)
     x = ELU()(x)
@@ -81,14 +81,14 @@ def get_simple_model(params):
     input_layer = Input(shape = (*params['dim'], params['n_channels']))
     x = input_layer
     x = get_conv_layer(x, 32, (3,3))
-    x = get_conv_layer(x, 64, (3,3), pool=False, drop=False)
+    x = get_conv_layer(x, 64, (3,3), pool=False)
     x = get_conv_layer(x, 64, (3,3))
-    x = get_conv_layer(x, 128, (3,3), pool=False, drop=False)
-    x = get_conv_layer(x, 128, (3,3))
+    x = get_conv_layer(x, 128, (3,3), pool=False)
+    x = get_conv_layer(x, 128, (3,3), pool_size=(2,2))
     
     x = Flatten()(x)
-    x = get_fc_layer(x, 1024)
-    x = get_fc_layer(x, 256)
+    x = get_fc_layer(x, 4096)
+    x = get_fc_layer(x, 512)
 
     output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -110,8 +110,8 @@ def get_inception_model(params):
     x = Flatten()(x)
     x = Dropout(0.5)(x)
 
-    x = get_fc_layer(x, 1024, bn=False)
-    x = get_fc_layer(x, 256, bn=False)
+    x = get_fc_layer(x, 1024)
+    x = get_fc_layer(x, 256)
 
     output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
     model = Model(inputs=input_tensor, outputs=output_layer)
