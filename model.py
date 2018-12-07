@@ -51,7 +51,7 @@ def focal_loss(gamma=2., alpha=.25):
     
 def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
     x = Conv2D(filters = filters, kernel_size = kernel_size,
-               padding = 'same', use_bias=False, activation='linear',
+               padding = 'same', activation='linear',
                kernel_initializer=initializers.glorot_uniform())(x)
     x = ELU()(x)
     
@@ -66,11 +66,13 @@ def get_conv_layer(x, filters, kernel_size, bn=True, pool=True, drop=True):
     
     return x
 
-def get_fc_layer(x, size):
-    x = Dense(size, use_bias=False, activation='linear',
+def get_fc_layer(x, size, bn=True):
+    x = Dense(size, activation='linear',
               kernel_initializer=initializers.glorot_uniform())(x)
     x = ELU()(x)
-    x = BatchNormalization()(x)
+
+    if bn:
+        x = BatchNormalization()(x)
     x = Dropout(0.50)(x)
     
     return x
@@ -103,11 +105,13 @@ def get_inception_model(params):
                           input_shape=(*params['dim'], 3))
 
     x = net(x)
-    x = Conv2D(128, kernel_size=(1,1), activation='relu')(x)
+    x = get_conv_layer(x, 256, (1,1), bn=False, pool=False, drop=False)
+    x = get_conv_layer(x, 64, (1,1), bn=False, pool=False, drop=False)
     x = Flatten()(x)
     x = Dropout(0.5)(x)
-    x = Dense(512, activation='relu')(x)
-    x = Dropout(0.5)(x)
+
+    x = get_fc_layer(x, 1024, bn=False)
+    x = get_fc_layer(x, 256, bn=False)
 
     output_layer = Dense(params['n_classes'], activation='sigmoid')(x)
     model = Model(inputs=input_tensor, outputs=output_layer)
